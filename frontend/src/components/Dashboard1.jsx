@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import NavBar1 from "./NavBar1";
 import { useMetaMask } from "../hooks/useMetamask";
 import { ethers } from 'ethers';
 import axios from "axios";
@@ -15,9 +14,11 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { Check, Copy, LogOut, Wallet, ChevronDown, RefreshCw, Send, TrendingUp, Users, ArrowUp } from "lucide-react";
+import { Wallet, RefreshCw, Send, TrendingUp, ArrowUp } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { containerVariants, cardVariants } from "../lib/animationVariants";
+import { DashboardBackground } from "./FloatingBackground";
 
 Chart.register(
   LineElement,
@@ -30,26 +31,6 @@ Chart.register(
   Tooltip,
   Legend
 );
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" }
-  }
-};
 
 const AdminBalance = () => {
   const { isConnected, account } = useMetaMask();
@@ -893,224 +874,11 @@ const ImagePlaceholder = () => {
   );
 };
 
-export function ConnectButton() {
-  const { isConnected, account, connect, disconnect } = useMetaMask();
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const dropdownRef = useRef(null);
-
-  const formatAddress = (address) => {
-    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
-  };
-
-  const copyToClipboard = () => {
-    if (account) {
-      navigator.clipboard.writeText(account);
-      setCopied(true);
-      toast.success("Address copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleClick = async () => {
-    if (isConnected) {
-      setShowDropdown(!showDropdown);
-    } else {
-      setIsLoading(true);
-      try {
-        await connect();
-      } catch (error) {
-        console.error("Connection error:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const handleDisconnect = async () => {
-    try {
-      setShowDropdown(false);
-      await disconnect();
-      toast.success("Wallet disconnected successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    } catch (error) {
-      console.error("Error disconnecting wallet:", error);
-      toast.error("Failed to disconnect wallet");
-    }
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  return (
-    <div className="relative flex justify-center w-full" ref={dropdownRef}>
-      <motion.button
-        onClick={handleClick}
-        disabled={isLoading}
-        className={`
-          relative overflow-hidden group
-          ${isConnected 
-            ? 'bg-white/90 backdrop-blur-sm border border-gray-200 text-gray-800 hover:bg-white hover:shadow-xl' 
-            : 'bg-gray-900 hover:bg-gray-800 text-white'
-          }
-          px-6 py-3 rounded-xl font-medium text-sm
-          transition-all duration-300 ease-out
-          hover:scale-105 hover:shadow-lg
-          disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
-          flex items-center gap-3 min-w-[180px] max-w-[220px] justify-center
-        `}
-        whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.98 }}
-      >
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/90 rounded-xl">
-            <motion.div 
-              className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            />
-          </div>
-        )}
-
-        <div className="relative flex items-center gap-3">
-          <div className={`p-1.5 rounded-lg ${isConnected ? 'bg-gray-100' : 'bg-white/20'}`}>
-            <Wallet className="w-4 h-4" />
-          </div>
-          
-          <span className="font-medium truncate">
-            {isConnected ? formatAddress(account) : "Connect Wallet"}
-          </span>
-          
-          {isConnected && (
-            <ChevronDown 
-              className={`w-4 h-4 transition-transform duration-200 ${
-                showDropdown ? 'rotate-180' : ''
-              }`} 
-            />
-          )}
-        </div>
-      </motion.button>
-
-      <AnimatePresence>
-        {showDropdown && isConnected && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.95 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute top-full left-1/2 transform -translate-x-1/2 mt-3 w-80 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 z-50 overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b border-gray-200/50">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-900 rounded-xl">
-                  <Wallet className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Wallet Connected</h3>
-                  <p className="text-xs text-gray-600">MetaMask</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 space-y-3">
-              <motion.div
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer group"
-                onClick={copyToClipboard}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-gray-900 mb-1">Wallet Address</p>
-                  <p className="text-xs text-gray-600 font-mono truncate">{account}</p>
-                </div>
-                <motion.button 
-                  className="ml-3 p-2 rounded-lg hover:bg-gray-200 transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  {copied ? (
-                    <Check className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <Copy className="w-4 h-4 text-gray-600 group-hover:text-gray-900" />
-                  )}
-                </motion.button>
-              </motion.div>
-
-              <motion.button
-                className="w-full flex items-center justify-center gap-2 p-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-medium transition-all duration-200 group"
-                onClick={handleDisconnect}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-              >
-                <LogOut className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                <span>Disconnect Wallet</span>
-              </motion.button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
 const Dashboard = () => {
-  // Floating background elements
-  const floatingElements = Array.from({ length: 6 }, (_, i) => (
-    <motion.div
-      key={i}
-      className="absolute w-2 h-2 bg-gradient-to-r from-gray-300 to-gray-500 rounded-full opacity-20"
-      style={{
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-      }}
-      animate={{
-        y: [-10, 10, -10],
-        x: [-5, 5, -5],
-        scale: [1, 1.2, 1],
-      }}
-      transition={{
-        duration: 3 + Math.random() * 2,
-        repeat: Infinity,
-        delay: Math.random() * 2,
-      }}
-    />
-  ));
-
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden pt-20">
       {/* Floating Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {floatingElements}
-        
-        {/* Geometric shapes */}
-        <motion.div
-          className="absolute top-20 left-20 w-32 h-32 border border-gray-200/50 rounded-full"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div
-          className="absolute bottom-20 right-20 w-24 h-24 border border-gray-300/50 rounded-lg"
-          animate={{ rotate: -360 }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-        />
-        
-        {/* Gradient orbs */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-purple-100/20 to-pink-100/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-indigo-100/20 to-cyan-100/20 rounded-full blur-3xl"></div>
-      </div>
+      <DashboardBackground />
 
       <div className="relative z-10">
         <motion.div 

@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, User, Lock, ArrowRight, Chrome, AlertCircle, Sparkles } from "lucide-react";
 import axios from "axios";
+import { containerVariants, itemVariants } from "./lib/animationVariants";
+import { AuthPageBackground } from "./components/FloatingBackground";
 
 function Login() {
   const [userName, setUserName] = useState("");
@@ -47,76 +49,18 @@ function Login() {
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  };
-
-  const floatingElements = Array.from({ length: 4 }, (_, i) => (
-    <motion.div
-      key={i}
-      className="absolute w-1.5 h-1.5 bg-gradient-to-r from-gray-400 to-gray-600 rounded-full opacity-20"
-      style={{
-        left: `${20 + Math.random() * 60}%`,
-        top: `${20 + Math.random() * 60}%`,
-      }}
-      animate={{
-        y: [-8, 8, -8],
-        x: [-4, 4, -4],
-        scale: [1, 1.1, 1],
-      }}
-      transition={{
-        duration: 2 + Math.random() * 1,
-        repeat: Infinity,
-        delay: Math.random() * 1,
-      }}
-    />
-  ));
   useEffect(() => {
     const token = localStorage.getItem("jwt");
     if (token) {
       navigate("/", { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
 
   return (
     <div className="h-screen bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden flex">
       {/* Floating Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {floatingElements}
-        
-        {/* Geometric shapes */}
-        <motion.div
-          className="absolute top-10 left-10 w-20 h-20 border border-gray-200 rounded-full"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        />
-        <motion.div
-          className="absolute bottom-10 right-10 w-16 h-16 border border-gray-300 rounded-lg"
-          animate={{ rotate: -360 }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-        />
-        
-        {/* Gradient orbs */}
-        <div className="absolute top-1/4 left-1/4 w-40 h-40 bg-gradient-to-r from-purple-100/20 to-pink-100/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-gradient-to-r from-indigo-100/20 to-cyan-100/20 rounded-full blur-3xl"></div>
-      </div>
+      <AuthPageBackground />
 
       {/* Left Side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center p-8">
