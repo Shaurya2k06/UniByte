@@ -54,7 +54,7 @@ function Login() {
     if (token) {
       navigate("/", { replace: true });
     }
-  }, [navigate]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   return (
